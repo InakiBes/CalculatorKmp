@@ -1,3 +1,5 @@
+package com.religada.calculator.data.platform
+
 import platform.UIKit.UIDevice
 
 class IOSPlatform: Platform {

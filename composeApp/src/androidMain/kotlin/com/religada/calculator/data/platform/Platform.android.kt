@@ -1,3 +1,5 @@
+package com.religada.calculator.data.platform
+
 import android.os.Build
 
 class AndroidPlatform : Platform {
