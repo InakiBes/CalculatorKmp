@@ -10,20 +10,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -54,10 +50,15 @@ fun Calculator(
     vm: CalculatorViewModel,
     onSettingsClick: () -> Unit
 ) {
+    LaunchedEffect(vm.state.goToSettings) {
+        if (vm.state.goToSettings) {
+            onSettingsClick()
+            vm.resetGoToSettings()
+        }
+    }
+
     MaterialTheme {
-        Scaffold(
-            topBar = { TopBar(onSettingsClick = onSettingsClick) },
-        ) { padding ->
+        Scaffold { padding ->
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -65,7 +66,14 @@ fun Calculator(
                     .padding(padding)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
-                CalculatorDisplay()
+                CalculatorDisplay(
+                    operation = vm.state.operation,
+                    result = vm.state.result,
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 200.dp)
+                        .padding(16.dp)
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 CalculatorKeyboard {
                     vm.symbolPressed(it)
@@ -75,26 +83,11 @@ fun Calculator(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(onSettingsClick: () -> Unit) {
-    TopAppBar(
-        title = { Text("KMP Calculator") }, // TODO use string resource
-        actions = {
-            IconButton(onClick = { onSettingsClick() }) {
-                Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
-            }
-        }
-    )
-}
-
-@Composable
-fun CalculatorDisplay(operation: String = "", result: String = "") {
+fun CalculatorDisplay(operation: String = "", result: String = "", modifier: Modifier) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .height(250.dp)
-            .padding(16.dp)
             .background(
                 color = Color.White,
                 shape = RoundedCornerShape(16.dp)
@@ -112,12 +105,14 @@ fun CalculatorDisplay(operation: String = "", result: String = "") {
                 text = operation,
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color.Black,
+                lineHeight = 60.sp
             )
             Text(
                 text = result,
                 fontSize = 24.sp,
-                color = Color.Gray
+                color = Color.Gray,
+                lineHeight = 32.sp
             )
         }
     }
@@ -129,7 +124,10 @@ fun CalculatorKeyboard(onButtonClick: (String) -> Unit) {
         modifier = Modifier.fillMaxWidth().padding(16.dp)
     ) {
         buttons.chunked(4).forEachIndexed { index, row ->
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
                 for (button in row) {
                     CalculatorButton(
                         symbol = button.symbol,
