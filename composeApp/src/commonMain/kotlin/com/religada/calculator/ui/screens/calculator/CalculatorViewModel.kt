@@ -15,7 +15,15 @@ class CalculatorViewModel : ScreenModel {
     var state by mutableStateOf(UiState())
         private set
 
-    private val operations = listOf("+", "-", "x", "÷", "( )", "(", ")") // TODO use variables as symbols, for example: val plus = "+"
+    private val operations = listOf(
+        "+",
+        "-",
+        "x",
+        "÷",
+        "( )",
+        "(",
+        ")"
+    ) // TODO use variables as symbols, for example: val plus = "+"
 
     private fun onSettingsClick() {
         state = state.copy(goToSettings = true) // TODO implement unidirectional flow
@@ -47,7 +55,7 @@ class CalculatorViewModel : ScreenModel {
                 addNumber(symbol)
             }
         }
-        if(symbol != "=") {
+        if (symbol != "=") {
             resetResultIsVisible()
         }
     }
@@ -61,33 +69,40 @@ class CalculatorViewModel : ScreenModel {
     }
 
     private fun addOperation(symbol: String) {
-        if(state.operation.isEmpty()) return
+        if (state.operation.isEmpty() && symbol != "-") return
 
-        if (symbol == "( )") {
-            val operation = state.operation
-            val openParens = operation.count { it == '(' }
-            val closeParens = operation.count { it == ')' }
-            state = if (openParens == closeParens) {
-                if(state.operation.last().isDigit()) {
-                    state.copy(operation = "${operation}x(")
-                } else {
-                    state.copy(operation = "$operation(")
-                }
-            } else {
-                state.copy(operation = "$operation)")
-            }
-        } else {
-            val lastTerm = state.operation.last().toString()
-            state = if (lastTerm in operations) {
-                state.copy(operation = state.operation.dropLast(1) + symbol)
-            } else {
+        state = when (symbol) {
+            "-" ->
                 state.copy(operation = state.operation + symbol)
+
+            "( )" -> {
+                val operation = state.operation
+                val openParens = operation.count { symbol == "(" }
+                val closeParens = operation.count { symbol == ")" }
+                if (openParens == closeParens) {
+                    if (state.operation.last().isDigit()) {
+                        state.copy(operation = "${operation}x(")
+                    } else {
+                        state.copy(operation = "$operation(")
+                    }
+                } else {
+                    state.copy(operation = "$operation)")
+                }
+            }
+
+            else -> {
+                val lastTerm = state.operation.last().toString()
+                if (lastTerm in operations) {
+                    state.copy(operation = state.operation.dropLast(1) + symbol)
+                } else {
+                    state.copy(operation = state.operation + symbol)
+                }
             }
         }
     }
 
     private fun addNumber(number: String) {
-        state = if(state.isResultVisible) {
+        state = if (state.isResultVisible) {
             state.copy(operation = number)
         } else {
             state.copy(operation = state.operation + number)
@@ -110,7 +125,7 @@ class CalculatorViewModel : ScreenModel {
     }
 
     private fun result() {
-        if(state.operation.isEmpty()) return
+        if (state.operation.isEmpty()) return
 
         // TODO Lock access to uiState until the sign change is complete.
         state = try {

@@ -5,6 +5,8 @@ import com.github.h0tk3y.betterParse.combinators.leftAssociative
 import com.github.h0tk3y.betterParse.combinators.map
 import com.github.h0tk3y.betterParse.combinators.or
 import com.github.h0tk3y.betterParse.combinators.skip
+import com.github.h0tk3y.betterParse.combinators.times
+import com.github.h0tk3y.betterParse.combinators.unaryMinus
 import com.github.h0tk3y.betterParse.combinators.use
 import com.github.h0tk3y.betterParse.grammar.Grammar
 import com.github.h0tk3y.betterParse.grammar.parser
@@ -27,8 +29,9 @@ class MathGrammar : Grammar<Double>() {
 
     val number by num use { text.toDouble() }
 
-    val term: Parser<Double> by number or
-            (skip(lpar) and parser(::rootParser) and skip(rpar))
+    val negNumber by (-minus * number) map { -it }
+
+    val term: Parser<Double> by negNumber or number or (skip(lpar) and parser(::rootParser) and skip(rpar))
 
     val powChain by leftAssociative(term, pow) { a, _, b -> a.pow(b) }
 
