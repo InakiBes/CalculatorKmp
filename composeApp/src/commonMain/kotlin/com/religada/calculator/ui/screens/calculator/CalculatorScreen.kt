@@ -30,7 +30,7 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.religada.calculator.design.lightGrayBackground
+import com.religada.calculator.ui.theme.lightGrayBackground
 import com.religada.calculator.ui.screens.settings.SettingsScreen
 
 object CalculatorScreen : Screen {

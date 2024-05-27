@@ -5,10 +5,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.github.h0tk3y.betterParse.grammar.parseToEnd
-import com.github.h0tk3y.betterParse.grammar.tryParseToEnd
-import com.github.h0tk3y.betterParse.parser.ParseResult
-import com.github.h0tk3y.betterParse.parser.Parsed
+import com.religada.calculator.data.CLEAR
+import com.religada.calculator.data.DIVISION
+import com.religada.calculator.data.DOUBLE_PARENTHESIS
+import com.religada.calculator.data.DROP_LAST
+import com.religada.calculator.data.EQUAL
+import com.religada.calculator.data.ERROR_RESULT
+import com.religada.calculator.data.LEFT_PARENTHESIS
+import com.religada.calculator.data.MENU
+import com.religada.calculator.data.MINUS
+import com.religada.calculator.data.MULTIPLICATION
 import com.religada.calculator.data.MathGrammar
+import com.religada.calculator.data.PLUS
+import com.religada.calculator.data.RIGHT_PARENTHESIS
 
 class CalculatorViewModel : ScreenModel {
 
@@ -16,34 +25,34 @@ class CalculatorViewModel : ScreenModel {
         private set
 
     private val operations = listOf(
-        "+",
-        "-",
-        "x",
-        "÷",
-        "( )",
-        "(",
-        ")"
-    ) // TODO use variables as symbols, for example: val plus = "+"
+        PLUS,
+        MINUS,
+        MULTIPLICATION,
+        DIVISION,
+        DOUBLE_PARENTHESIS,
+        LEFT_PARENTHESIS,
+        RIGHT_PARENTHESIS
+    )
 
     private fun onSettingsClick() {
-        state = state.copy(goToSettings = true) // TODO implement unidirectional flow
+        state = state.copy(goToSettings = true)
     }
 
     fun symbolPressed(symbol: String) {
         when (symbol) {
-            "C" -> {
+            CLEAR -> {
                 clear()
             }
 
-            "⌫" -> {
+            DROP_LAST -> {
                 dropLast()
             }
 
-            "=" -> {
+            EQUAL -> {
                 result()
             }
 
-            "☰" -> {
+            MENU -> {
                 onSettingsClick()
             }
 
@@ -55,7 +64,7 @@ class CalculatorViewModel : ScreenModel {
                 addNumber(symbol)
             }
         }
-        if (symbol != "=") {
+        if (symbol != EQUAL) {
             resetResultIsVisible()
         }
     }
@@ -69,24 +78,24 @@ class CalculatorViewModel : ScreenModel {
     }
 
     private fun addOperation(symbol: String) {
-        if (state.operation.isEmpty() && symbol != "-") return
+        if (state.operation.isEmpty() && symbol != MINUS) return
 
         state = when (symbol) {
-            "-" ->
+            MINUS ->
                 state.copy(operation = state.operation + symbol)
 
-            "( )" -> {
+            DOUBLE_PARENTHESIS -> {
                 val operation = state.operation
-                val openParens = operation.count { symbol == "(" }
-                val closeParens = operation.count { symbol == ")" }
+                val openParens = operation.count { symbol == LEFT_PARENTHESIS }
+                val closeParens = operation.count { symbol == RIGHT_PARENTHESIS }
                 if (openParens == closeParens) {
                     if (state.operation.last().isDigit()) {
-                        state.copy(operation = "${operation}x(")
+                        state.copy(operation = "$operation$MULTIPLICATION$LEFT_PARENTHESIS")
                     } else {
-                        state.copy(operation = "$operation(")
+                        state.copy(operation = "$operation$LEFT_PARENTHESIS")
                     }
                 } else {
-                    state.copy(operation = "$operation)")
+                    state.copy(operation = "$operation$RIGHT_PARENTHESIS")
                 }
             }
 
@@ -112,13 +121,13 @@ class CalculatorViewModel : ScreenModel {
     private fun toggleSign() {
         // TODO Lock access to uiState until the sign change is complete.
         val currentOperation = state.operation
-        state = if (state.operation.startsWith("-(")) {
+        state = if (state.operation.startsWith("$MINUS$LEFT_PARENTHESIS")) {
             state.copy(
                 operation = currentOperation.substring(2, currentOperation.length - 1)
             )
         } else {
             state.copy(
-                operation = "-($currentOperation)"
+                operation = "$MINUS$LEFT_PARENTHESIS$currentOperation$RIGHT_PARENTHESIS"
             )
         }
         result()
@@ -133,7 +142,7 @@ class CalculatorViewModel : ScreenModel {
             state.copy(operation = evaluatedResult, result = "", isResultVisible = true)
         } catch (e: Exception) {
             println("__dev: Error: ${e.message}")
-            state.copy(result = "Error")
+            state.copy(result = ERROR_RESULT)
         }
     }
 

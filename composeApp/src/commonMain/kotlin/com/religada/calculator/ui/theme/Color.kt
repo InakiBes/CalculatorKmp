@@ -1,4 +1,4 @@
-package com.religada.calculator.design
+package com.religada.calculator.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

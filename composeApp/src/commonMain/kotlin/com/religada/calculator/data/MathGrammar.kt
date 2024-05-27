@@ -16,61 +16,42 @@ import com.github.h0tk3y.betterParse.parser.Parser
 import kotlin.math.pow
 
 class MathGrammar : Grammar<Double>() {
-    val num by regexToken("\\d+(\\.\\d+)?")
-    val lpar by literalToken("(")
-    val rpar by literalToken(")")
-    val mul by literalToken("x")
-    val pow by literalToken("^")
-    val div by literalToken("÷")
-    val minus by literalToken("-")
-    val plus by literalToken("+")
-    val percent by literalToken("%")
-    val ws by regexToken("\\s+", ignore = true)
+    private val num by regexToken(REGEX_NUMBER)
+    private val lpar by literalToken(LEFT_PARENTHESIS)
+    private val rpar by literalToken(RIGHT_PARENTHESIS)
+    private val mul by literalToken(MULTIPLICATION)
+    private val pow by literalToken(POWER)
+    private val div by literalToken(DIVISION)
+    private val minus by literalToken(MINUS)
+    private val plus by literalToken(PLUS)
+    private val percent by literalToken(DIVISION)
+    private val ws by regexToken(WHITESPACE, ignore = true)
 
-    val number by num use { text.toDouble() }
+    private val number by num use { text.toDouble() }
 
-    val negNumber by (-minus * number) map { -it }
+    private val negNumber by (-minus * number) map { -it }
 
-    val term: Parser<Double> by negNumber or number or (skip(lpar) and parser(::rootParser) and skip(rpar))
+    private val term: Parser<Double> by negNumber or number or (skip(lpar) and parser(::rootParser) and skip(rpar))
 
-    val powChain by leftAssociative(term, pow) { a, _, b -> a.pow(b) }
+    private val powChain by leftAssociative(term, pow) { a, _, b -> a.pow(b) }
 
-    val divMulChain by leftAssociative(powChain, div or mul use { type }) { a, op, b ->
+    private val divMulChain by leftAssociative(powChain, div or mul use { type }) { a, op, b ->
         when (op) {
             div -> a / b
             mul -> a * b
-            else -> error("Unexpected operator")
-        }
-    }
-
-    val subSumChain by leftAssociative(divMulChain, plus or minus use { type }) { a, op, b ->
-        when (op) {
-            plus -> a + b
-            minus -> a - b
-            else -> error("Unexpected operator")
-        }
-    }
-
-    val percentChain by leftAssociative(subSumChain, percent) { a, _, _ ->
-        a / 100
-    }
-
-    override val rootParser: Parser<Double> by percentChain
-}
-
             else -> error(UNEXPECTED_ERROR)
         }
     }
 
-    val subSumChain by leftAssociative(divMulChain, plus or minus use { type }) { a, op, b ->
+    private val subSumChain by leftAssociative(divMulChain, plus or minus use { type }) { a, op, b ->
         when (op) {
             plus -> a + b
             minus -> a - b
-            else -> error("Unexpected operator")
+            else -> error(UNEXPECTED_ERROR)
         }
     }
 
-    val percentChain by leftAssociative(subSumChain, percent) { a, _, _ ->
+    private val percentChain by leftAssociative(subSumChain, percent) { a, _, _ ->
         a / 100
     }
 
