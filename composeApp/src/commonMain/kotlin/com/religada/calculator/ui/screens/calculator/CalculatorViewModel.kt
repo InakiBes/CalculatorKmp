@@ -78,44 +78,54 @@ class CalculatorViewModel : ScreenModel {
     }
 
     private fun addOperation(symbol: String) {
-        if (state.operation.isEmpty() && symbol != MINUS) return
-
-        state = when (symbol) {
-            MINUS ->
-                state.copy(operation = state.operation + symbol)
-
-            DOUBLE_PARENTHESIS -> {
-                val operation = state.operation
-                val openParens = operation.count { symbol == LEFT_PARENTHESIS }
-                val closeParens = operation.count { symbol == RIGHT_PARENTHESIS }
-                if (openParens == closeParens) {
-                    if (state.operation.last().isDigit()) {
-                        state.copy(operation = "$operation$MULTIPLICATION$LEFT_PARENTHESIS")
-                    } else {
-                        state.copy(operation = "$operation$LEFT_PARENTHESIS")
-                    }
-                } else {
-                    state.copy(operation = "$operation$RIGHT_PARENTHESIS")
-                }
-            }
-
-            else -> {
-                val lastTerm = state.operation.last().toString()
-                if (lastTerm in operations) {
-                    state.copy(operation = state.operation.dropLast(1) + symbol)
-                } else {
+        state = if (state.operation.isEmpty()) {
+            when (symbol) {
+                MINUS -> {
                     state.copy(operation = state.operation + symbol)
+                }
+
+                DOUBLE_PARENTHESIS -> {
+                    state.copy(operation = state.operation + LEFT_PARENTHESIS)
+                }
+
+                else -> state
+            }
+        } else {
+            when (symbol) {
+                MINUS ->
+                    state.copy(operation = state.operation + symbol)
+
+                DOUBLE_PARENTHESIS -> {
+                    val operation = state.operation
+                    val openParens = operation.count { it == LEFT_PARENTHESIS.toCharArray()[0] }
+                    val closeParens = operation.count { it == RIGHT_PARENTHESIS.toCharArray()[0] }
+                    if (openParens == closeParens) {
+                        if (state.operation.last().isDigit() || state.operation.last() == RIGHT_PARENTHESIS.toCharArray()[0]){
+                            state.copy(operation = "$operation$MULTIPLICATION$LEFT_PARENTHESIS")
+                        } else {
+                            state.copy(operation = "$operation$LEFT_PARENTHESIS")
+                        }
+                    } else {
+                        state.copy(operation = "$operation$RIGHT_PARENTHESIS")
+                    }
+                }
+
+                else -> {
+                    val lastTerm = state.operation.last().toString()
+                    if (lastTerm in operations) {
+                        state.copy(operation = state.operation.dropLast(1) + symbol)
+                    } else {
+                        state.copy(operation = state.operation + symbol)
+                    }
                 }
             }
         }
     }
 
     private fun addNumber(number: String) {
-        state = if (state.isResultVisible) {
-            state.copy(operation = number)
-        } else {
-            state.copy(operation = state.operation + number)
-        }
+        state = state.copy(
+            operation = if (state.isResultVisible) number else state.operation + number
+        )
     }
 
     private fun toggleSign() {
